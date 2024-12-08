@@ -47,6 +47,7 @@ group :development, :test do
   gem 'rspec-rails', '~> 6.1.0'
   gem 'factory_bot_rails'
   gem 'faker'
+  gem 'dotenv-rails'
 end
 
 group :development do
@@ -55,5 +56,9 @@ group :development do
 
   # Highlight the fine-grained location where an error occurred [https://github.com/ruby/error_highlight]
   gem "error_highlight", ">= 0.4.0", platforms: [:ruby]
+  gem 'annotate'
 end
+
+# Pagination
+gem 'kaminari'
 
