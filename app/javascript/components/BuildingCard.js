@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import BuildingForm from './BuildingForm';
 
+// Define the standard fields that are displayed separately from custom fields
 const STANDARD_FIELDS = ['id', 'client_name', 'address', 'state', 'zipcode'];
 
 const BuildingCard = ({ building }) => {
   const [isEditing, setIsEditing] = useState(false);
 
+  // Styles for the building card component
   const styles = {
     card: {
       backgroundColor: '#fff',
@@ -55,17 +57,20 @@ const BuildingCard = ({ building }) => {
     }
   };
 
+  // Convert snake_case field names to Title Case for display
   const formatFieldName = (fieldName) => {
     return fieldName.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   };
 
   const handleEditSubmit = () => {
     setIsEditing(false);
-    // La mise à jour de la liste est gérée par le contexte
+    // List update is handled by the context
   };
 
+  // Filter out standard fields to get custom fields
   const customFields = Object.entries(building).filter(([key]) => !STANDARD_FIELDS.includes(key));
 
+  // Render the edit form when in editing mode
   if (isEditing) {
     return <BuildingForm 
       building={building}
@@ -74,6 +79,7 @@ const BuildingCard = ({ building }) => {
     />;
   }
 
+  // Render the building card with all information
   return (
     <div style={styles.card}>
       <div style={styles.address}>{building.address}</div>

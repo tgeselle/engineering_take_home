@@ -1,7 +1,9 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 
+// Create a context for managing building-related state and operations
 export const BuildingContext = createContext();
 
+// Define standard fields that are common to all buildings
 const STANDARD_FIELDS = ['id', 'client_id', 'client_name', 'address', 'state', 'zipcode'];
 
 export const BuildingProvider = ({ children }) => {
@@ -10,6 +12,7 @@ export const BuildingProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [customFields, setCustomFields] = useState(new Set());
 
+  // Extract custom fields from buildings data by filtering out standard fields
   const extractCustomFields = (buildingsData) => {
     const fields = new Set();
     buildingsData.forEach(building => {
@@ -22,6 +25,7 @@ export const BuildingProvider = ({ children }) => {
     return Array.from(fields);
   };
 
+  // Fetch all buildings from the API
   const fetchBuildings = async () => {
     try {
       setLoading(true);
@@ -42,6 +46,7 @@ export const BuildingProvider = ({ children }) => {
     }
   };
 
+  // Create a new building and refresh the list
   const createBuilding = async (buildingData) => {
     try {
       setError(null);
@@ -65,7 +70,7 @@ export const BuildingProvider = ({ children }) => {
         throw new Error(data.errors?.join(', ') || 'Failed to create building');
       }
 
-      await fetchBuildings(); // Rafraîchir la liste complète
+      await fetchBuildings(); // Refresh the complete list
       return data;
     } catch (err) {
       setError(err.message);
@@ -74,6 +79,7 @@ export const BuildingProvider = ({ children }) => {
     }
   };
 
+  // Update an existing building
   const updateBuilding = async (id, buildingData) => {
     try {
       setError(null);
@@ -99,6 +105,7 @@ export const BuildingProvider = ({ children }) => {
 
       const updatedBuilding = data.building;
 
+      // Update the local state with the new building data
       setBuildings(prevBuildings => 
         prevBuildings.map(building => 
           building.id === id ? updatedBuilding : building
@@ -113,6 +120,7 @@ export const BuildingProvider = ({ children }) => {
     }
   };
 
+  // Fetch buildings on component mount
   useEffect(() => {
     fetchBuildings();
   }, []);
@@ -135,4 +143,5 @@ export const BuildingProvider = ({ children }) => {
   );
 };
 
+// Custom hook to access the building context
 export const useBuildings = () => useContext(BuildingContext); 
