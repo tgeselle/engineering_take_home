@@ -8,9 +8,36 @@ class Api::V1::BuildingsController < Api::V1::BaseController
                          .max_paginates_per(10)
   end
 
+  # POST /api/v1/buildings
   def create
+    @building = Building.new(building_params)
+    if @building.save
+      handle_custom_field_values(@building)
+      render :create, status: :created
+    else
+      render :errors, status: :unprocessable_entity
+    end
   end
   
   def update
   end    
+
+  private
+
+  def building_params
+    params.require(:building).permit(:address, :state, :zipcode, :client_id)
+  end
+
+  def handle_custom_field_values(building)
+    return unless params[:custom_fields]
+
+    params[:custom_fields].each do |field_name, value|
+      custom_field = CustomField.find_by(name: field_name)
+      next unless custom_field
+
+      custom_field_value = building.custom_field_values.find_or_initialize_by(custom_field: custom_field)
+      custom_field_value.value = value
+      custom_field_value.save!
+    end
+  end
 end
