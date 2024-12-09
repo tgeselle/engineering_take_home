@@ -10,6 +10,8 @@ const BuildingForm = ({ onSubmit, onCancel, building = null }) => {
     client_id: '',
     custom_fields: {}
   });
+  const [formError, setFormError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (building) {
@@ -79,6 +81,8 @@ const BuildingForm = ({ onSubmit, onCancel, building = null }) => {
     submitButton: {
       backgroundColor: '#4CAF50',
       color: 'white',
+      opacity: (submitting) => submitting ? 0.7 : 1,
+      cursor: (submitting) => submitting ? 'not-allowed' : 'pointer',
     },
     cancelButton: {
       backgroundColor: '#f5f5f5',
@@ -89,18 +93,32 @@ const BuildingForm = ({ onSubmit, onCancel, building = null }) => {
       padding: '15px',
       backgroundColor: '#f9f9f9',
       borderRadius: '4px',
+    },
+    error: {
+      color: '#ff0000',
+      marginBottom: '15px',
+      padding: '10px',
+      backgroundColor: '#fff5f5',
+      borderRadius: '4px',
+      border: '1px solid #ffebeb',
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormError(null);
+    setSubmitting(true);
+
     try {
       const result = building
         ? await updateBuilding(building.id, formData)
         : await createBuilding(formData);
       onSubmit(result);
     } catch (error) {
+      setFormError(error.message);
       console.error('Error saving building:', error);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -132,6 +150,12 @@ const BuildingForm = ({ onSubmit, onCancel, building = null }) => {
       <h2 style={styles.title}>
         {building ? 'Edit Building' : 'Add New Building'}
       </h2>
+
+      {formError && (
+        <div style={styles.error}>
+          {formError}
+        </div>
+      )}
       
       <div style={styles.field}>
         <label style={styles.label}>Address</label>
@@ -142,6 +166,7 @@ const BuildingForm = ({ onSubmit, onCancel, building = null }) => {
           onChange={handleChange}
           style={styles.input}
           required
+          disabled={submitting}
         />
       </div>
 
@@ -154,6 +179,7 @@ const BuildingForm = ({ onSubmit, onCancel, building = null }) => {
           onChange={handleChange}
           style={styles.input}
           required
+          disabled={submitting}
         />
       </div>
 
@@ -166,6 +192,7 @@ const BuildingForm = ({ onSubmit, onCancel, building = null }) => {
           onChange={handleChange}
           style={styles.input}
           required
+          disabled={submitting}
         />
       </div>
 
@@ -178,6 +205,7 @@ const BuildingForm = ({ onSubmit, onCancel, building = null }) => {
           onChange={handleChange}
           style={styles.input}
           required
+          disabled={submitting}
         />
       </div>
 
@@ -193,6 +221,7 @@ const BuildingForm = ({ onSubmit, onCancel, building = null }) => {
                 value={formData.custom_fields[fieldName] || ''}
                 onChange={handleChange}
                 style={styles.input}
+                disabled={submitting}
               />
             </div>
           ))}
@@ -204,14 +233,24 @@ const BuildingForm = ({ onSubmit, onCancel, building = null }) => {
           type="button"
           onClick={onCancel}
           style={{...styles.button, ...styles.cancelButton}}
+          disabled={submitting}
         >
           Cancel
         </button>
         <button
           type="submit"
-          style={{...styles.button, ...styles.submitButton}}
+          style={{
+            ...styles.button,
+            ...styles.submitButton,
+            opacity: submitting ? 0.7 : 1,
+            cursor: submitting ? 'not-allowed' : 'pointer'
+          }}
+          disabled={submitting}
         >
-          {building ? 'Update Building' : 'Create Building'}
+          {submitting 
+            ? (building ? 'Updating...' : 'Creating...')
+            : (building ? 'Update Building' : 'Create Building')
+          }
         </button>
       </div>
     </form>

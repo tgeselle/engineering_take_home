@@ -24,20 +24,27 @@ export const BuildingProvider = ({ children }) => {
 
   const fetchBuildings = async () => {
     try {
+      setLoading(true);
+      setError(null);
       const response = await fetch('/api/v1/buildings?per_page=9');
+      if (!response.ok) {
+        throw new Error('Failed to fetch buildings');
+      }
       const data = await response.json();
       const buildingsData = data.buildings;
       setBuildings(buildingsData);
       setCustomFields(extractCustomFields(buildingsData));
-      setLoading(false);
     } catch (err) {
-      setError('Failed to fetch buildings');
+      setError(err.message);
+      console.error('Error fetching buildings:', err);
+    } finally {
       setLoading(false);
     }
   };
 
   const createBuilding = async (buildingData) => {
     try {
+      setError(null);
       const { custom_fields, ...buildingInfo } = buildingData;
       const payload = {
         building: buildingInfo,
@@ -52,21 +59,24 @@ export const BuildingProvider = ({ children }) => {
         body: JSON.stringify(payload),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Failed to create building');
+        throw new Error(data.errors?.join(', ') || 'Failed to create building');
       }
 
-      const newBuilding = await response.json();
-      setBuildings([...buildings, newBuilding]);
-      return newBuilding;
+      await fetchBuildings(); // Rafraîchir la liste complète
+      return data;
     } catch (err) {
-      setError('Failed to create building');
+      setError(err.message);
+      console.error('Error creating building:', err);
       throw err;
     }
   };
 
   const updateBuilding = async (id, buildingData) => {
     try {
+      setError(null);
       const { custom_fields, ...buildingInfo } = buildingData;
       const payload = {
         building: buildingInfo,
@@ -81,11 +91,12 @@ export const BuildingProvider = ({ children }) => {
         body: JSON.stringify(payload),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Failed to update building');
+        throw new Error(data.errors?.join(', ') || 'Failed to update building');
       }
 
-      const data = await response.json();
       const updatedBuilding = data.building;
 
       setBuildings(prevBuildings => 
@@ -96,7 +107,8 @@ export const BuildingProvider = ({ children }) => {
 
       return updatedBuilding;
     } catch (err) {
-      setError('Failed to update building');
+      setError(err.message);
+      console.error('Error updating building:', err);
       throw err;
     }
   };
@@ -114,7 +126,8 @@ export const BuildingProvider = ({ children }) => {
         createBuilding,
         updateBuilding,
         customFields,
-        standardFields: STANDARD_FIELDS
+        standardFields: STANDARD_FIELDS,
+        refreshBuildings: fetchBuildings
       }}
     >
       {children}

@@ -24,7 +24,6 @@ class CustomFieldValue < ApplicationRecord
   belongs_to :building
   belongs_to :custom_field
 
-  validates :value, presence: true
   validates :custom_field_id, uniqueness: { scope: :building_id, message: "must be unique for each building" }
 
   validate :validate_value_type
@@ -34,6 +33,8 @@ class CustomFieldValue < ApplicationRecord
   # Validates the value type based on the custom field type
   # @return [void]
   def validate_value_type
+    return if value.blank?
+
     case custom_field.field_type
     when "number"
       errors.add(:value, "must be a number") unless value.to_f.to_s == value || value.to_i.to_s == value

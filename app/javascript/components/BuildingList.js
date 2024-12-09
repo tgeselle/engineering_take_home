@@ -4,7 +4,7 @@ import BuildingCard from './BuildingCard';
 import BuildingForm from './BuildingForm';
 
 const BuildingList = () => {
-  const { buildings, loading, error } = useBuildings();
+  const { buildings, loading, error, refreshBuildings } = useBuildings();
   const [showForm, setShowForm] = useState(false);
 
   const styles = {
@@ -48,23 +48,49 @@ const BuildingList = () => {
       color: '#ff0000',
       textAlign: 'center',
       padding: '20px',
+      backgroundColor: '#fff5f5',
+      borderRadius: '4px',
+      border: '1px solid #ffebeb',
+      marginBottom: '20px',
+    },
+    retryButton: {
+      backgroundColor: '#4CAF50',
+      color: 'white',
+      padding: '8px 16px',
+      borderRadius: '4px',
+      border: 'none',
+      cursor: 'pointer',
+      fontSize: '14px',
+      fontWeight: '500',
+      marginTop: '10px',
     }
   };
 
-  const handleFormSubmit = (newBuilding) => {
+  const handleFormSubmit = async (newBuilding) => {
     setShowForm(false);
+    await refreshBuildings();
   };
 
   if (loading) {
     return <div style={styles.loading}>Loading buildings...</div>;
   }
 
-  if (error) {
-    return <div style={styles.error}>{error}</div>;
-  }
-
   return (
     <div style={styles.container}>
+      {error && (
+        <div style={styles.error}>
+          {error}
+          <div>
+            <button 
+              onClick={refreshBuildings}
+              style={styles.retryButton}
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      )}
+
       {showForm ? (
         <BuildingForm
           onSubmit={handleFormSubmit}
