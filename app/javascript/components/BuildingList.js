@@ -53,8 +53,6 @@ const BuildingList = () => {
 
   const handleFormSubmit = (newBuilding) => {
     setShowForm(false);
-    // Recharger la liste des bâtiments
-    window.location.reload();
   };
 
   if (loading) {

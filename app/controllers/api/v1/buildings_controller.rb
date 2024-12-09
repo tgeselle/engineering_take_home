@@ -4,7 +4,7 @@ class Api::V1::BuildingsController < Api::V1::BaseController
   # GET /api/v1/buildings
   def index
     @buildings = Building.includes(:client, :custom_field_values, client: :custom_fields)
-                         .order(:id)
+                         .order(id: :desc)
                          .page(params[:page] || 1)
                          .per(params[:per_page] || 10)
                          .max_paginates_per(10)
@@ -45,7 +45,7 @@ class Api::V1::BuildingsController < Api::V1::BaseController
     return unless params[:custom_fields]
 
     params[:custom_fields].each do |field_name, value|
-      custom_field = CustomField.find_by(name: field_name)
+      custom_field = CustomField.find_by(name: field_name, client_id: building.client_id)
       next unless custom_field
 
       custom_field_value = building.custom_field_values.find_or_initialize_by(custom_field: custom_field)

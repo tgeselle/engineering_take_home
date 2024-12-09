@@ -2,7 +2,7 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 
 export const BuildingContext = createContext();
 
-const STANDARD_FIELDS = ['id', 'client_name', 'address', 'state', 'zipcode'];
+const STANDARD_FIELDS = ['id', 'client_id', 'client_name', 'address', 'state', 'zipcode'];
 
 export const BuildingProvider = ({ children }) => {
   const [buildings, setBuildings] = useState([]);
@@ -24,7 +24,7 @@ export const BuildingProvider = ({ children }) => {
 
   const fetchBuildings = async () => {
     try {
-      const response = await fetch('/api/v1/buildings');
+      const response = await fetch('/api/v1/buildings?per_page=9');
       const data = await response.json();
       const buildingsData = data.buildings;
       setBuildings(buildingsData);
@@ -38,12 +38,18 @@ export const BuildingProvider = ({ children }) => {
 
   const createBuilding = async (buildingData) => {
     try {
+      const { custom_fields, ...buildingInfo } = buildingData;
+      const payload = {
+        building: buildingInfo,
+        custom_fields
+      };
+
       const response = await fetch('/api/v1/buildings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(buildingData),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -59,6 +65,42 @@ export const BuildingProvider = ({ children }) => {
     }
   };
 
+  const updateBuilding = async (id, buildingData) => {
+    try {
+      const { custom_fields, ...buildingInfo } = buildingData;
+      const payload = {
+        building: buildingInfo,
+        custom_fields
+      };
+
+      const response = await fetch(`/api/v1/buildings/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update building');
+      }
+
+      const data = await response.json();
+      const updatedBuilding = data.building;
+
+      setBuildings(prevBuildings => 
+        prevBuildings.map(building => 
+          building.id === id ? updatedBuilding : building
+        )
+      );
+
+      return updatedBuilding;
+    } catch (err) {
+      setError('Failed to update building');
+      throw err;
+    }
+  };
+
   useEffect(() => {
     fetchBuildings();
   }, []);
@@ -70,7 +112,9 @@ export const BuildingProvider = ({ children }) => {
         loading, 
         error, 
         createBuilding,
-        customFields
+        updateBuilding,
+        customFields,
+        standardFields: STANDARD_FIELDS
       }}
     >
       {children}

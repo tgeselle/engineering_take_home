@@ -1,6 +1,7 @@
 json.status "success"
 json.buildings @buildings do |building|
   json.id building.id
+  json.client_id building.client_id
   json.client_name building.client.name
   json.address building.address
   json.state building.state

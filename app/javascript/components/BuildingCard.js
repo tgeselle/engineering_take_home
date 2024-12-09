@@ -1,6 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
+import BuildingForm from './BuildingForm';
+
+const STANDARD_FIELDS = ['id', 'client_name', 'address', 'state', 'zipcode'];
 
 const BuildingCard = ({ building }) => {
+  const [isEditing, setIsEditing] = useState(false);
+
   const styles = {
     card: {
       backgroundColor: '#fff',
@@ -8,7 +13,6 @@ const BuildingCard = ({ building }) => {
       padding: '20px',
       boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
       transition: 'transform 0.2s ease',
-      cursor: 'pointer',
     },
     address: {
       fontSize: '18px',
@@ -36,12 +40,39 @@ const BuildingCard = ({ building }) => {
     },
     customField: {
       marginBottom: '5px',
+    },
+    editButton: {
+      backgroundColor: '#4CAF50',
+      color: 'white',
+      padding: '8px 16px',
+      borderRadius: '4px',
+      border: 'none',
+      cursor: 'pointer',
+      fontSize: '14px',
+      fontWeight: '500',
+      marginTop: '10px',
+      width: '100%',
     }
   };
 
-  const customFields = Object.keys(building).filter(key => 
-    !['id', 'client_name', 'address', 'state', 'zipcode'].includes(key)
-  );
+  const formatFieldName = (fieldName) => {
+    return fieldName.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  };
+
+  const handleEditSubmit = () => {
+    setIsEditing(false);
+    // La mise à jour de la liste est gérée par le contexte
+  };
+
+  const customFields = Object.entries(building).filter(([key]) => !STANDARD_FIELDS.includes(key));
+
+  if (isEditing) {
+    return <BuildingForm 
+      building={building}
+      onSubmit={handleEditSubmit}
+      onCancel={() => setIsEditing(false)}
+    />;
+  }
 
   return (
     <div style={styles.card}>
@@ -53,14 +84,23 @@ const BuildingCard = ({ building }) => {
         <span style={styles.value}>{building.client_name}</span>
       </div>
 
-      <div style={styles.section}>
-        {customFields.map((field) => (
-          <div key={field} style={styles.customField}>
-            <span style={styles.label}>{field}:</span>
-            <span style={styles.value}>{building[field]}</span>
-          </div>
-        ))}
-      </div>
+      {customFields.length > 0 && (
+        <div style={styles.section}>
+          {customFields.map(([fieldName, value]) => (
+            <div key={fieldName} style={styles.customField}>
+              <span style={styles.label}>{formatFieldName(fieldName)}:</span>
+              <span style={styles.value}>{value}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <button
+        onClick={() => setIsEditing(true)}
+        style={styles.editButton}
+      >
+        Edit Building
+      </button>
     </div>
   );
 };

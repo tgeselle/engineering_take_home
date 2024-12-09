@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useBuildings } from '../contexts/BuildingContext';
 
-const BuildingForm = ({ onSubmit, onCancel }) => {
-  const { createBuilding, customFields } = useBuildings();
+const BuildingForm = ({ onSubmit, onCancel, building = null }) => {
+  const { createBuilding, updateBuilding, customFields, standardFields } = useBuildings();
   const [formData, setFormData] = useState({
     address: '',
     state: '',
@@ -10,6 +10,25 @@ const BuildingForm = ({ onSubmit, onCancel }) => {
     client_id: '',
     custom_fields: {}
   });
+
+  useEffect(() => {
+    if (building) {
+      const customFieldsData = {};
+      Object.entries(building).forEach(([key, value]) => {
+        if (!standardFields.includes(key)) {
+          customFieldsData[key] = value;
+        }
+      });
+
+      setFormData({
+        address: building.address || '',
+        state: building.state || '',
+        zipcode: building.zipcode || '',
+        client_id: building.client_id?.toString() || '',
+        custom_fields: customFieldsData
+      });
+    }
+  }, [building, standardFields]);
 
   const styles = {
     form: {
@@ -76,10 +95,12 @@ const BuildingForm = ({ onSubmit, onCancel }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const newBuilding = await createBuilding(formData);
-      onSubmit(newBuilding);
+      const result = building
+        ? await updateBuilding(building.id, formData)
+        : await createBuilding(formData);
+      onSubmit(result);
     } catch (error) {
-      console.error('Error creating building:', error);
+      console.error('Error saving building:', error);
     }
   };
 
@@ -102,9 +123,15 @@ const BuildingForm = ({ onSubmit, onCancel }) => {
     }
   };
 
+  const formatFieldName = (fieldName) => {
+    return fieldName.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  };
+
   return (
     <form onSubmit={handleSubmit} style={styles.form}>
-      <h2 style={styles.title}>Add New Building</h2>
+      <h2 style={styles.title}>
+        {building ? 'Edit Building' : 'Add New Building'}
+      </h2>
       
       <div style={styles.field}>
         <label style={styles.label}>Address</label>
@@ -159,12 +186,11 @@ const BuildingForm = ({ onSubmit, onCancel }) => {
           <h3 style={{...styles.label, marginBottom: '15px'}}>Custom Fields</h3>
           {customFields.map((fieldName) => (
             <div key={fieldName} style={styles.field}>
-              <label style={styles.label}>
-                {fieldName.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-              </label>
+              <label style={styles.label}>{formatFieldName(fieldName)}</label>
               <input
                 type="text"
                 name={`custom_field_${fieldName}`}
+                value={formData.custom_fields[fieldName] || ''}
                 onChange={handleChange}
                 style={styles.input}
               />
@@ -185,7 +211,7 @@ const BuildingForm = ({ onSubmit, onCancel }) => {
           type="submit"
           style={{...styles.button, ...styles.submitButton}}
         >
-          Create Building
+          {building ? 'Update Building' : 'Create Building'}
         </button>
       </div>
     </form>
