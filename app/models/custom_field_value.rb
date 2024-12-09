@@ -1,3 +1,25 @@
+# == Schema Information
+#
+# Table name: custom_field_values
+#
+#  id              :bigint           not null, primary key
+#  value           :string
+#  created_at      :datetime         not null
+#  updated_at      :datetime         not null
+#  building_id     :bigint           not null
+#  custom_field_id :bigint           not null
+#
+# Indexes
+#
+#  index_custom_field_values_on_building_id                      (building_id)
+#  index_custom_field_values_on_building_id_and_custom_field_id  (building_id,custom_field_id) UNIQUE
+#  index_custom_field_values_on_custom_field_id                  (custom_field_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (building_id => buildings.id)
+#  fk_rails_...  (custom_field_id => custom_fields.id)
+#
 class CustomFieldValue < ApplicationRecord
   belongs_to :building
   belongs_to :custom_field
