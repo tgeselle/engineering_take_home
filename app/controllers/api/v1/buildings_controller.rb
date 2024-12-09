@@ -1,4 +1,6 @@
 class Api::V1::BuildingsController < Api::V1::BaseController
+  before_action :set_building, only: [:update]
+
   # GET /api/v1/buildings
   def index
     @buildings = Building.includes(:client, :custom_field_values, client: :custom_fields)
@@ -18,11 +20,22 @@ class Api::V1::BuildingsController < Api::V1::BaseController
       render :errors, status: :unprocessable_entity
     end
   end
-  
+
+  # PATCH /api/v1/buildings/:id
   def update
+    if @building.update(building_params)
+      handle_custom_field_values(@building)
+      render :update, status: :ok
+    else
+      render :errors, status: :unprocessable_entity
+    end
   end    
 
   private
+
+  def set_building
+    @building = Building.find(params[:id])
+  end
 
   def building_params
     params.require(:building).permit(:address, :state, :zipcode, :client_id)
