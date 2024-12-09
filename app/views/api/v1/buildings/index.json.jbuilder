@@ -6,11 +6,12 @@ json.buildings @buildings do |building|
   json.state building.state
   json.zipcode building.zipcode
 
-  # Include all custom fields for the client, even if empty
+  # Créer un hash des custom_field_values pour un accès plus rapide
+  custom_field_values_hash = building.custom_field_values.index_by(&:custom_field_id)
+
   building.client.custom_fields.each do |cf|
-    cfv = building.custom_field_values.find_by(custom_field: cf)
+    cfv = custom_field_values_hash[cf.id]
     value = cfv&.value
-    # Convert number fields to actual numbers
     if cf.field_type == "number" && value.present?
       value = value.include?(".") ? value.to_f : value.to_i
     end
